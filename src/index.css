@@ -1,0 +1,17 @@
+/* Add Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Delius&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+/* Set up custom fonts */
+body {
+  font-family: 'Inter', sans-serif;  /* Default font */
+}
+
+/* Optional: Create custom class for Ribeye font */
+.delius-regular {
+  font-family: "Delius", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
