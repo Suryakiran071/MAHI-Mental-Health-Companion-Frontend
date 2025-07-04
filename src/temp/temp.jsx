@@ -26,7 +26,7 @@ const MoodTracker = () => {
   const addMoodLog = async () => {
     const userId = auth.currentUser ? auth.currentUser.uid : "anonymous"; // Get user ID from Firebase Authentication
     const newMoodLog = {
-      date: new Date().toISOString().split("T")[0],  // Current date in YYYY-MM-DD format
+      date: new Date().toLocaleDateString('en-CA'),  // Current date in YYYY-MM-DD format
       mood: selectedMood,
       comments: "",  // You can include additional comments if needed
       note: note,
@@ -198,7 +198,7 @@ const MoodTracker = () => {
       <div className="container mx-auto py-8 px-10">
         <div style={{ marginTop: "80px" }}></div>
 
-        <h1 className="text-4xl font-semibold mb-8 text-center">Mood Tracker</h1>
+        <h1 className="text-4xl font-semibold mb-8 text-center">Mood <em className="text-green-600 italic">Tracker</em></h1>
 
         {logStatus && (
           <div className="alert" style={{ padding: '10px', backgroundColor: '#f4e1d2', color: '#d9534f', borderRadius: '5px', textAlign: 'center' }}>
@@ -208,8 +208,8 @@ const MoodTracker = () => {
 
         <div className="flex space-x-8">
           {/* Left Card - Mood Input */}
-          <div className="card w-2/3 p-3 shadow-lg rounded-lg ml-8" style={{ height: "500px", padding: "20px" }}>
-            <h1 className="text-2xl font-semibold mb-6">How are you feeling today?</h1>
+          <div className="card w-2/3 p-3 shadow-lg rounded-lg ml-8" style={{ height: "525px", padding: "20px" }}>
+            <h1 className="jua-regular text-3xl text-gray-600 font-semibold mb-6">How are you <em className="text-green-600 italic">feeling</em> today?</h1>
 
             <div className="mood-icons flex justify-between mb-4">
               {["Very Happy", "Happy", "Neutral", "Sad", "Very Sad"].map((mood) => (
@@ -225,15 +225,15 @@ const MoodTracker = () => {
 
             {/* Additional Notes and Description */}
             <div className="mb-4">
-              <label className="block text-lg"><b>Additional Notes</b></label>
-              <textarea className="p-3 border rounded-lg w-full mt-2" rows="3" value={note} onChange={(e) => setNote(e.target.value)}></textarea>
+              <label className="jua-regular text-3xl text-gray-600 block text-lg"><b>Additional Notes</b></label>
+              <textarea className="w-full text-xl text-gray-700 border-b-2 border-gray-400 focus:outline-none focus:border-green-500 pb-2 p-3 rounded-lg mt-2" rows="2" value={note} onChange={(e) => setNote(e.target.value)}></textarea>
             </div>
 
             {/* Mood Tags */}
             <div className="mb-4">
-              <label className="block text-lg"><b>Mood Tags</b></label>
+              <label className="jua-regular text-3xl text-gray-600 block text-lg"><b>Mood Tags</b></label>
               <div className="flex items-center">
-                <input type="text" className="p-3 border rounded-lg w-full mt-2" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. family, excited" />
+                <input type="text" className="w-full text-xl text-gray-700 border-b-2 border-gray-400 focus:outline-none focus:border-green-500 pb-2 p-3 rounded-lg mt-2" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. family, excited" />
                 <button className="bg-white text-black border-2 border-black py-2 px-4 rounded-full ml-2 hover:bg-black hover:text-white transition-colors" onClick={addTag}>
                   Add Tag
                 </button>
@@ -254,17 +254,17 @@ const MoodTracker = () => {
           </div>
 
           {/* Right Card - Mood Overview */}
-          <div className="card w-1/3 p-6 shadow-lg rounded-lg mr-10" style={{ height: "500px", padding: "20px" }}>
+          <div className="card w-1/3 p-6 shadow-lg rounded-lg mr-10" style={{ height: "525px", padding: "20px" }}>
             <Doughnut data={moodData} options={{ responsive: true, width: 200, height: 200 }} />
             <div className="text-center mt-4">
-              <h3 className="text-xl font-semibold">Most Frequent Mood: {mostFrequentMood}</h3>
+              <h3 className="text-xl font-semibold">Most <em className="text-green-600 italic">Frequent</em> Mood: {mostFrequentMood}</h3>
             </div>
           </div>
         </div>
 
         {/* Mood Over Time */}
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-4 text-center">Your Mood Over Time</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-center">Your <em className="text-green-600 italic">Mood</em> Over Time</h2>
 
           {/* Month View: Display May, June, and July in a row */}
           <div className="container mx-auto py-8 px-40">
@@ -276,7 +276,7 @@ const MoodTracker = () => {
                     <h3 className="text-xl font-semibold">{monthInfo.name} {monthInfo.year}</h3>
                     <div className="grid grid-cols-7 gap-2 text-center mt-4">
                       {monthDays.map((mood, index) => (
-                        <div key={index} className="day-dot p-1 rounded-full bg-gray-300">
+                        <div key={index} className="day-dot p-1 rounded-full bg-gray-200">
                           {mood !== "No Mood" && <img src={moodImages[mood]} alt={mood} className="w-6 h-6" />}
                         </div>
                       ))}

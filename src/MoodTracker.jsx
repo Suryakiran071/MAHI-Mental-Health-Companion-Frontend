@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Doughnut } from "react-chartjs-2"; // Use Doughnut chart for mood progress
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
 import very_happy from "./assets/very_happy.png";
 import happy from "./assets/Happy.png";
 import neutral from "./assets/Neutral.png";
@@ -13,6 +14,7 @@ import { collection, addDoc, query, where, getDocs } from 'firebase/firestore'; 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const MoodTracker = () => {
+  const navigate = useNavigate(); // Initialize navigate function
   const [moodLogs, setMoodLogs] = useState([]);
   const [selectedMood, setSelectedMood] = useState("");
   const [note, setNote] = useState(""); // For adding a note
@@ -108,6 +110,11 @@ const MoodTracker = () => {
     });
     
     setMonthlyMoodData(monthlyData);
+  };
+
+  // Navigate to detailed mood view
+  const handleViewDetailedMood = () => {
+    navigate('/detailed-mood');
   };
 
   // Fetch mood logs when the component mounts
@@ -209,7 +216,7 @@ const MoodTracker = () => {
         <div className="flex space-x-8">
           {/* Left Card - Mood Input */}
           <div className="card w-2/3 p-3 shadow-lg rounded-lg ml-8" style={{ height: "525px", padding: "20px" }}>
-            <h1 className="text-2xl font-semibold mb-6">How are you <em className="text-green-600 italic">feeling</em> today?</h1>
+            <h1 className="jua-regular text-3xl text-gray-600 font-semibold mb-6">How are you <em className="text-green-600 italic">feeling</em> today?</h1>
 
             <div className="mood-icons flex justify-between mb-4">
               {["Very Happy", "Happy", "Neutral", "Sad", "Very Sad"].map((mood) => (
@@ -225,15 +232,15 @@ const MoodTracker = () => {
 
             {/* Additional Notes and Description */}
             <div className="mb-4">
-              <label className="block text-lg"><b>Additional Notes</b></label>
-              <textarea className="p-3 border rounded-lg w-full mt-2" rows="3" value={note} onChange={(e) => setNote(e.target.value)}></textarea>
+              <label className="jua-regular text-3xl text-gray-600 block text-lg"><b>Additional Notes</b></label>
+              <textarea className="w-full text-xl text-gray-700 border-b-2 border-gray-400 focus:outline-none focus:border-green-500 pb-2 p-3 rounded-lg mt-2" rows="2" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Enter Your Mood Description"></textarea>
             </div>
 
             {/* Mood Tags */}
             <div className="mb-4">
-              <label className="block text-lg"><b>Mood Tags</b></label>
+              <label className="jua-regular text-3xl text-gray-600 block text-lg"><b>Mood Tags</b></label>
               <div className="flex items-center">
-                <input type="text" className="p-3 border rounded-lg w-full mt-2" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. family, excited" />
+                <input type="text" className="w-full text-xl text-gray-700 border-b-2 border-gray-400 focus:outline-none focus:border-green-500 pb-2 p-3 rounded-lg mt-2" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. family, excited" />
                 <button className="bg-white text-black border-2 border-black py-2 px-4 rounded-full ml-2 hover:bg-black hover:text-white transition-colors" onClick={addTag}>
                   Add Tag
                 </button>
@@ -264,7 +271,15 @@ const MoodTracker = () => {
 
         {/* Mood Over Time */}
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-4 text-center">Your <em className="text-green-600 italic">Mood</em> Over Time</h2>
+          <div className="flex justify-center items-center mb-4 space-x-4">
+            <h2 className="text-2xl font-semibold">Your <em className="text-green-600 italic">Mood</em> Over Time</h2>
+            <button 
+              className="bg-green-600 text-white py-2 px-4 rounded-full hover:bg-green-700 transition-colors"
+              onClick={handleViewDetailedMood}
+            >
+              View Detailed Mood
+            </button>
+          </div>
 
           {/* Month View: Display May, June, and July in a row */}
           <div className="container mx-auto py-8 px-40">
@@ -276,7 +291,7 @@ const MoodTracker = () => {
                     <h3 className="text-xl font-semibold">{monthInfo.name} {monthInfo.year}</h3>
                     <div className="grid grid-cols-7 gap-2 text-center mt-4">
                       {monthDays.map((mood, index) => (
-                        <div key={index} className="day-dot p-1 rounded-full bg-gray-300">
+                        <div key={index} className="day-dot p-1 rounded-full bg-gray-200">
                           {mood !== "No Mood" && <img src={moodImages[mood]} alt={mood} className="w-6 h-6" />}
                         </div>
                       ))}

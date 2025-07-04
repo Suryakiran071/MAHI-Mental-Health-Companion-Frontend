@@ -6,6 +6,9 @@ import MoodTracker from "./MoodTracker";
 import ContactPage from "./ContactPage";
 import LoginPage from "./LoginPage";
 import ChatbotPage from "./Chatbot";
+import MentalHealthResources from "./MentalHealthResources";
+import DetailedMoodView from "./DetailedMoodView";
+import Ballpit from "./Components/Ballpit";
 
 const App = () => {
   return (
@@ -14,10 +17,13 @@ const App = () => {
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/ball" element={<Ballpit />} />
           <Route path="/tracker" element={<MoodTracker />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/chatbot" element={<ChatbotPage />} /> 
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/resource" element={<MentalHealthResources />} />
+          <Route path="/detailed-mood" element={<DetailedMoodView />} />
         </Routes>
       </main>
     </>

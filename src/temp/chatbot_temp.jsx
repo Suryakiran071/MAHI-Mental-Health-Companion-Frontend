@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
 
 const ChatbotPage = () => {
@@ -7,50 +7,38 @@ const ChatbotPage = () => {
   ]);
   const [input, setInput] = useState("");
   const [darkMode, setDarkMode] = useState(false);
-  const [loading, setLoading] = useState(false); // Loading state
-
-  const messagesEndRef = useRef(null); // Create ref for the chat container
-
-  // Scroll to the bottom of the messages when messages change
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
 
   const handleSendMessage = async () => {
-    if (input.trim() !== "") {
-      const userMessage = { text: input, sender: "User" };
-      setMessages((prev) => [...prev, userMessage]);
-      setInput("");
-      setLoading(true); // Set loading to true when waiting for response
+  if (input.trim() !== "") {
+    const userMessage = { text: input, sender: "User" };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
 
-      try {
-        const response = await fetch("http://localhost:8000/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_input: input }),
-        });
+    try {
+      const response = await fetch("http://localhost:8000/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_input: input }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        const aiMessage = {
-          text: data.response,
-          sender: "AI",
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-      } catch (error) {
-        setMessages((prev) => [
-          ...prev,
-          { text: "Error: Could not reach the backend.", sender: "AI" },
-        ]);
-      } finally {
-        setLoading(false); // Set loading to false once the response is received
-      }
+      const aiMessage = {
+        text: data.response,
+        sender: "AI",
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { text: "Error: Could not reach the backend.", sender: "AI" },
+      ]);
     }
-  };
+  }
+};
+
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && input.trim() !== "") {
@@ -59,15 +47,14 @@ const ChatbotPage = () => {
   };
 
   return (
-    <div
-      className={`${
-        darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
-      } min-h-screen flex flex-col items-center px-4 pt-20`}
-    >
+    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"} min-h-screen flex flex-col items-center px-4 pt-20`}>
+      
       {/* Sticky Header */}
       <div className="w-full max-w-6xl sticky top-0 bg-inherit z-10 py-4 flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold">Hi there! Let's chat! 💬</h1>
+          <h1 className="text-4xl font-bold">
+            Hi there! Let's chat! 💬
+          </h1>
           <p className="text-lg mt-1 max-w-xl">
             I'm your mental health companion. Feel free to share your thoughts, and I'll assist you the best I can!
           </p>
@@ -87,14 +74,15 @@ const ChatbotPage = () => {
 
       {/* Chatbot Box Container */}
       <div className="w-full max-w-xl bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col mt-6">
+        
         {/* Messages */}
         <div className="flex-1 p-4 overflow-auto space-y-4 max-h-96 flex flex-col">
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`p-4 rounded-lg ${message.sender === "AI" ? "self-start" : "self-end"} ${
+              className={`p-4 rounded-lg ${
                 darkMode ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-800"
-              }`}
+              } self-${message.sender === "AI" ? "start" : "end"}`}
               style={{
                 display: "inline-block",
                 wordBreak: "break-word",
@@ -104,33 +92,17 @@ const ChatbotPage = () => {
               <p>{message.text}</p>
             </div>
           ))}
-
-          {/* Loading Spinner */}
-          {loading && (
-            <div
-              className={`p-2 animate-spin drop-shadow-2xl bg-gradient-to-bl from-pink-400 via-purple-400 to-indigo-600 md:w-12 md:h-12 w-10 h-10 aspect-square rounded-full`}
-            >
-              <div className="rounded-full h-full w-full bg-slate-100 dark:bg-blue-100 background-blur-md"></div>
-            </div>
-          )}
-          
-          {/* This div ensures the scroll-to-bottom effect */}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Field */}
-        <div
-          className={`${
-            darkMode ? "bg-gray-700" : "bg-gray-200"
-          } p-4 border-t border-gray-300`}
-        >
+        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-200"} p-4 border-t border-gray-300`}>
           <div className="flex items-center space-x-3">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              className={`flex-1 p-3 rounded-full border ${
+              className={`flex-1 p-3 rounded-lg border ${
                 darkMode
                   ? "bg-gray-800 border-gray-600 text-white"
                   : "border-gray-300"
