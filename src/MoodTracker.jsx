@@ -1,59 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { Doughnut } from "react-chartjs-2"; // Use Doughnut chart for mood progress
+import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
+import { useNavigate } from 'react-router-dom';
 import very_happy from "./assets/very_happy.png";
 import happy from "./assets/Happy.png";
 import neutral from "./assets/Neutral.png";
 import sad from "./assets/Sad.png";
 import very_sad from "./assets/very_sad.png";
-import { db, auth } from './firebase';  // import db and auth from firebase.js
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';  // Firestore methods
+import { db, auth } from './firebase';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 // Register chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const MoodTracker = () => {
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
   const [moodLogs, setMoodLogs] = useState([]);
   const [selectedMood, setSelectedMood] = useState("");
-  const [note, setNote] = useState(""); // For adding a note
-  const [tags, setTags] = useState(""); // For mood tags
-  const [tagList, setTagList] = useState([]); // To store the added tags
-  const [logStatus, setLogStatus] = useState(""); // For showing success/failure status
-  const [userMoodLogs, setUserMoodLogs] = useState([]); // For displaying logged user's mood logs
-  const [monthlyMoodData, setMonthlyMoodData] = useState({}); // Store mood data by month
+  const [note, setNote] = useState("");
+  const [tags, setTags] = useState("");
+  const [tagList, setTagList] = useState([]);
+  const [logStatus, setLogStatus] = useState("");
+  const [userMoodLogs, setUserMoodLogs] = useState([]);
+  const [monthlyMoodData, setMonthlyMoodData] = useState({});
+  const [moodAnalysis, setMoodAnalysis] = useState("");
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState("");
 
   // Handle adding a mood log
   const addMoodLog = async () => {
-    const userId = auth.currentUser ? auth.currentUser.uid : "anonymous"; // Get user ID from Firebase Authentication
+    const userId = auth.currentUser ? auth.currentUser.uid : "anonymous";
     const newMoodLog = {
-      date: new Date().toLocaleDateString('en-CA'),  // Current date in YYYY-MM-DD format
+      date: new Date().toLocaleDateString('en-CA'),
       mood: selectedMood,
-      comments: "",  // You can include additional comments if needed
+      comments: "",
       note: note,
       tags: tagList,
-      userId: userId,  // Include the user ID
+      userId: userId,
     };
 
     try {
-      // Add the new mood log to the "mood_logs" collection in Firestore
       const docRef = await addDoc(collection(db, 'mood_logs'), newMoodLog);
       console.log("Mood log added with ID: ", docRef.id);
 
-      // Show success message
       setLogStatus("Mood log added successfully!");
-
-      // Reset input fields
       setSelectedMood("");
       setNote("");
       setTags("");
       setTagList([]);
 
-      // Refetch the mood logs after successful submission
       fetchUserMoodLogs();
+      fetchMoodAnalysis(); // Refresh analysis after adding new mood log
 
-      // Hide message after 3 seconds
       setTimeout(() => {
         setLogStatus("");
       }, 3000);
@@ -70,13 +68,13 @@ const MoodTracker = () => {
   const addTag = () => {
     if (tags && !tagList.includes(tags)) {
       setTagList([...tagList, tags]);
-      setTags(""); // Clear the tag input
+      setTags("");
     }
   };
 
   // Fetch all mood logs of the logged-in user
   const fetchUserMoodLogs = async () => {
-    const userId = auth.currentUser ? auth.currentUser.uid : "anonymous"; // Get the logged-in user's ID
+    const userId = auth.currentUser ? auth.currentUser.uid : "anonymous";
     const q = query(
       collection(db, 'mood_logs'),
       where("userId", "==", userId)
@@ -84,11 +82,42 @@ const MoodTracker = () => {
 
     const querySnapshot = await getDocs(q);
     const logs = querySnapshot.docs.map(doc => doc.data());
-    setUserMoodLogs(logs); // Set the mood logs of the user to state
-    setMoodLogs(logs); // Also set moodLogs to the fetched data for aggregation
+    setUserMoodLogs(logs);
+    setMoodLogs(logs);
     
-    // Process monthly data
     processMonthlyData(logs);
+  };
+
+  // Fetch mood analysis from backend
+  const fetchMoodAnalysis = async () => {
+    const userId = auth.currentUser ? auth.currentUser.uid : "anonymous";
+    
+    setAnalysisLoading(true);
+    setAnalysisError("");
+    
+    try {
+      const response = await fetch('http://localhost:8000/analyze_mood', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setMoodAnalysis(data.mood_analysis);
+    } catch (error) {
+      console.error('Error fetching mood analysis:', error);
+      setAnalysisError("Unable to fetch mood analysis. Please try again later.");
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   // Process mood logs by month
@@ -98,7 +127,7 @@ const MoodTracker = () => {
     logs.forEach(log => {
       const date = new Date(log.date);
       const year = date.getFullYear();
-      const month = date.getMonth(); // 0-based month (0 = January, 4 = May, 5 = June, 6 = July)
+      const month = date.getMonth();
       const monthKey = `${year}-${month}`;
       
       if (!monthlyData[monthKey]) {
@@ -117,10 +146,10 @@ const MoodTracker = () => {
     navigate('/detailed-mood');
   };
 
-  // Fetch mood logs when the component mounts
+  // Fetch mood logs and analysis when the component mounts
   useEffect(() => {
-    // Fetch mood logs for the logged-in user as soon as the component mounts
-    fetchUserMoodLogs();  // Fetch all mood logs of the logged-in user
+    fetchUserMoodLogs();
+    fetchMoodAnalysis();
   }, []);
 
   // Aggregate mood counts for the pie chart
@@ -145,17 +174,17 @@ const MoodTracker = () => {
       {
         data: [moodCount["Very Happy"], moodCount.Happy, moodCount.Neutral, moodCount.Sad, moodCount["Very Sad"]],
         backgroundColor: [
-          "#45AC48", // Yellow for Very Happy
-          "#83D486", // Light Green for Happy
-          "#FFD43F", // Orange for Neutral
-          "#FFADA7", // Red for Sad
-          "#EE4B4B"  // Grey for Very Sad
+          "#45AC48",
+          "#83D486",
+          "#FFD43F",
+          "#FFADA7",
+          "#EE4B4B"
         ],
         borderColor: [
           "#45AC48", "#83D486", "#FFD43F", "#FFADA7", "#EE4B4B"
         ],
         borderWidth: 1,
-        cutout: "80%", // Reduce thickness by increasing the cutout percentage
+        cutout: "80%",
       },
     ],
   };
@@ -195,10 +224,29 @@ const MoodTracker = () => {
   // Define the months to display
   const currentYear = 2025;
   const monthsToDisplay = [
-    { name: "May", year: currentYear, month: 4 }, // May = month 4 (0-based)
-    { name: "June", year: currentYear, month: 5 }, // June = month 5
-    { name: "July", year: currentYear, month: 6 }  // July = month 6
+    { name: "May", year: currentYear, month: 4 },
+    { name: "June", year: currentYear, month: 5 },
+    { name: "July", year: currentYear, month: 6 }
   ];
+
+  // Format analysis text for better display
+  const formatAnalysisText = (text) => {
+    if (!text) return "";
+    
+    // Split by common patterns and format
+    const sections = text.split(/(?=- Overall Mood Summary:|Overall Mood Summary:|Mood Fluctuations:|Suggestions:)/);
+    
+    return sections.map((section, index) => {
+      if (section.trim()) {
+        return (
+          <div key={index} className="mb-4">
+            <p className="text-gray-700 leading-relaxed">{section.trim()}</p>
+          </div>
+        );
+      }
+      return null;
+    });
+  };
 
   return (
     <div className="mood-tracker">
@@ -303,18 +351,45 @@ const MoodTracker = () => {
           </div>
         </div>
 
-        {/* Display User's Mood Logs as Cards */}
+        {/* Your Analysis Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-4 text-center">Your Mood Logs</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userMoodLogs.map((log, idx) => (
-              <div key={idx} className="card p-4 shadow-lg rounded-lg">
-                <h3 className="text-xl font-semibold">Date: {log.date}</h3>
-                <p><strong>Mood:</strong> {log.mood}</p>
-                <p><strong>Note:</strong> {log.note}</p>
-                <p><strong>Tags:</strong> {log.tags.join(", ")}</p>
-              </div>
-            ))}
+          <div className="flex justify-center items-center mb-6 space-x-4">
+            <h2 className="text-2xl font-semibold">Your <em className="text-green-600 italic">Analysis</em></h2>
+            <button 
+              className="bg-green-600 text-white py-2 px-4 rounded-full hover:bg-green-700 transition-colors"
+              onClick={fetchMoodAnalysis}
+              disabled={analysisLoading}
+            >
+              {analysisLoading ? "Refreshing..." : "Refresh Analysis"}
+            </button>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="card p-6 shadow-lg rounded-lg bg-white">
+              {analysisLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                  <span className="ml-4 text-gray-600">Analyzing your mood patterns...</span>
+                </div>
+              ) : analysisError ? (
+                <div className="text-center py-8">
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    {analysisError}
+                  </div>
+                </div>
+              ) : moodAnalysis ? (
+                <div className="prose max-w-none">
+                  <div className="text-gray-800">
+                    {formatAnalysisText(moodAnalysis)}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No mood data available for analysis yet.</p>
+                  <p className="text-sm mt-2">Start logging your moods to see your personalized analysis!</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

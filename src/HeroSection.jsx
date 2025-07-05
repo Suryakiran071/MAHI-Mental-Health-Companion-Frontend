@@ -67,6 +67,7 @@ const HeroSection = ({ isLoggedIn }) => {
             Support your mental well-being with personalized, empathetic assistance.
             Track your mood, practice mindfulness, and get tailored advice anytime.
           </p>
+          
 
           {/* Conditionally Render Explore Now or Mood Input */}
           {isLoggedIn ? (
