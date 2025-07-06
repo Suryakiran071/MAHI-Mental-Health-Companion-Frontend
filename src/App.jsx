@@ -5,7 +5,7 @@ import HomePage from "./HomePage";
 import MoodTracker from "./MoodTracker";
 import ContactPage from "./ContactPage";
 import LoginPage from "./LoginPage";
-import ChatbotPage from "./Chatbot";
+import ChatbotPage from "./ChatBot";
 import MentalHealthResources from "./MentalHealthResources";
 import DetailedMoodView from "./DetailedMoodView";
 import Ballpit from "./Components/Ballpit";
