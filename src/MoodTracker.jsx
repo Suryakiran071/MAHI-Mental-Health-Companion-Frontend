@@ -146,6 +146,11 @@ const MoodTracker = () => {
     navigate('/detailed-mood');
   };
 
+  // Navigate to resources page
+  const handleNavigateToResources = () => {
+    navigate('/resource');
+  };
+
   // Fetch mood logs and analysis when the component mounts
   useEffect(() => {
     fetchUserMoodLogs();
@@ -253,7 +258,16 @@ const MoodTracker = () => {
       <div className="container mx-auto py-8 px-10">
         <div style={{ marginTop: "80px" }}></div>
 
-        <h1 className="text-4xl font-semibold mb-8 text-center">Mood <em className="text-green-600 italic">Tracker</em></h1>
+        {/* Updated Header with Resources Button */}
+        <div className="relative mb-8">
+          <h1 className="text-4xl font-semibold text-center">Mood <em className="text-green-600 italic">Tracker</em></h1>
+          <button 
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-green-600 text-white py-2 px-4 rounded-full text-sm hover:bg-green-700 transition-colors shadow-md"
+            onClick={handleNavigateToResources}
+          >
+            Personalized Resources for You
+          </button>
+        </div>
 
         {logStatus && (
           <div className="alert" style={{ padding: '10px', backgroundColor: '#f4e1d2', color: '#d9534f', borderRadius: '5px', textAlign: 'center' }}>

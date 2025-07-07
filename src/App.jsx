@@ -9,6 +9,7 @@ import ChatbotPage from "./ChatBot";
 import MentalHealthResources from "./MentalHealthResources";
 import DetailedMoodView from "./DetailedMoodView";
 import Ballpit from "./Components/Ballpit";
+import Meditation from "./Meditation";
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/resource" element={<MentalHealthResources />} />
           <Route path="/detailed-mood" element={<DetailedMoodView />} />
+          <Route path="/meditation" element={<Meditation />} />
         </Routes>
       </main>
     </>

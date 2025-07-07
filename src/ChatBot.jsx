@@ -88,7 +88,7 @@ const ChatbotPage = () => {
       </div>
 
       {/* Dark Mode Toggle - Fixed Position */}
-      <div className="fixed top-20 mt-5 mr-10 right-4 z-20">
+      <div className="fixed top-20 mt-5 mr-5 right-4 z-20">
         <label className="relative inline-block w-16 h-8">
           <input
             type="checkbox"

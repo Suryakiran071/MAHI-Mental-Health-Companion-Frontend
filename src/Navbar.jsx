@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "./assets/Mahi-Logo.png";        // Original Logo
 import whitelogo from "./assets/Logo-White.png";  // White Logo
 import { auth } from "./firebase";
@@ -9,6 +9,7 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate(); // Add navigate hook
   const lastScrollY = useRef(window.scrollY);
   const [scrollPosition, setScrollPosition] = useState(0);
 
@@ -35,8 +36,13 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    setDropdownOpen(false);
+    try {
+      await signOut(auth);
+      setDropdownOpen(false);
+      navigate("/"); // Redirect to home page after logout
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   const isHomePage = location.pathname === "/";
@@ -138,8 +144,8 @@ const Navbar = () => {
         {/* Right side links */}
         <ul className="flex space-x-8 text-lg items-center flex-1 justify-end">
           <li className="group relative cursor-pointer" style={linkStyle}>
-            <Link to="/contact">
-              Contact
+            <Link to="/meditation">
+              Meditation
               <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-green-500 transition-all duration-300 ease-in-out group-hover:w-full"></span>
             </Link>
           </li>
