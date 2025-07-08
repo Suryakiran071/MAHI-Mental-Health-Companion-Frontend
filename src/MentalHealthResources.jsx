@@ -41,7 +41,7 @@ const MentalHealthResources = () => {
   // Function to classify mood from backend
   const classifyMood = async () => {
     try {
-      const response = await fetch('http://localhost:8000/classify_mood', {
+      const response = await fetch('http://localhost:8000/classify/mood', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

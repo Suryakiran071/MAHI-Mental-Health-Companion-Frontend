@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import mental from "./assets/background.jpg";
 import girl from "./assets/Girl.jpg";
@@ -10,6 +10,9 @@ import insights from "./assets/Resources.jpg";
 import FAQSection from "./FAQSection"; // or define in same file above HeroSection
 import Magnet from './Components/Magnet'
 import BlurText from "./Components/BlurText";
+// Import Firebase functions
+import { db } from "./firebase"; // Adjust path as needed
+import { collection, addDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 const FloatingChatButton = () => {
   return (
@@ -20,6 +23,276 @@ const FloatingChatButton = () => {
     </Link>
   );
 };
+
+const StarRating = ({ rating, onRatingChange, interactive = false }) => {
+  const [hover, setHover] = useState(0);
+
+  return (
+    <div className="flex space-x-1">
+      {[...Array(5)].map((_, index) => {
+        const ratingValue = index + 1;
+        return (
+          <button
+            key={index}
+            type={interactive ? "button" : undefined}
+            className={`text-xl transition-colors duration-200 ${
+              interactive ? "cursor-pointer hover:scale-110" : "cursor-default"
+            } ${
+              ratingValue <= (hover || rating)
+                ? "text-yellow-400"
+                : "text-gray-300"
+            }`}
+            onClick={interactive ? () => onRatingChange(ratingValue) : undefined}
+            onMouseEnter={interactive ? () => setHover(ratingValue) : undefined}
+            onMouseLeave={interactive ? () => setHover(0) : undefined}
+            disabled={!interactive}
+          >
+            ★
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+const FeedbackCard = ({ feedback }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow duration-300">
+      <div className="flex items-center mb-4">
+        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+          {feedback.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg text-gray-800">{feedback.name}</h3>
+          <StarRating rating={feedback.rating} />
+        </div>
+      </div>
+      <p className="text-gray-600 italic leading-relaxed">"{feedback.feedback}"</p>
+      <div className="mt-4 text-sm text-gray-400">
+        {feedback.createdAt && new Date(feedback.createdAt.toDate()).toLocaleDateString()}
+      </div>
+    </div>
+  );
+};
+
+
+
+const FeedbackSection = () => {
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    rating: 0,
+    feedback: ""
+  });
+  const [submitMessage, setSubmitMessage] = useState("");
+
+  // Fetch feedbacks from Firestore
+  const fetchFeedbacks = async () => {
+    try {
+      const feedbackRef = collection(db, "feedbacks");
+      const q = query(feedbackRef, orderBy("createdAt", "desc"), limit(20));
+      const querySnapshot = await getDocs(q);
+      
+      const feedbackData = [];
+      querySnapshot.forEach((doc) => {
+        feedbackData.push({ id: doc.id, ...doc.data() });
+      });
+      
+      // Shuffle and get random 3 feedbacks
+      const shuffled = feedbackData.sort(() => 0.5 - Math.random());
+      setFeedbacks(shuffled.slice(0, 3));
+    } catch (error) {
+      console.error("Error fetching feedbacks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.rating || !formData.feedback) {
+      setSubmitMessage("Please fill in all fields");
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      await addDoc(collection(db, "feedbacks"), {
+        name: formData.name,
+        rating: formData.rating,
+        feedback: formData.feedback,
+        createdAt: new Date()
+      });
+      
+      setSubmitMessage("Thank you for your feedback! It has been submitted successfully.");
+      setFormData({ name: "", rating: 0, feedback: "" });
+      
+      // Refresh feedbacks to potentially show the new one
+      setTimeout(() => {
+        fetchFeedbacks();
+      }, 1000);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setSubmitMessage("Error submitting feedback. Please try again.");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleRatingChange = (rating) => {
+    setFormData({
+      ...formData,
+      rating: rating
+    });
+  };
+
+  return (
+    <div className="bg-gray-50 py-12">
+      {/* User Feedbacks Display Section */}
+      <section className="container mx-auto px-4 md:px-16 mb-12">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl md:text-5xl font-serif font-semibold mb-4">
+            What Our <em className="text-green-600 italic">Users</em> Say
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Real experiences from people who have found support and healing through MAHI
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {feedbacks.length > 0 ? (
+              feedbacks.map((feedback) => (
+                <FeedbackCard key={feedback.id} feedback={feedback} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500 text-lg">No feedbacks available yet. Be the first to share your experience!</p>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Submit Feedback Section with Reduced Height */}
+      <section className="w-full">
+        <div className="flex flex-col lg:flex-row min-h-[400px]">
+          {/* Left Half - Green Background with Title */}
+          <div className="lg:w-1/2 bg-green-600 flex items-center justify-center p-6 lg:p-12">
+            <div className="text-center lg:text-left">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-semibold mb-4 text-white">
+                Share Your <em className="italic">Experience</em>
+              </h2>
+              <p className="text-green-100 text-base md:text-lg max-w-md">
+                Help others discover the benefits of MAHI by sharing your feedback and joining our community of wellness
+              </p>
+            </div>
+          </div>
+
+          {/* Right Half - White Background with Compact Form */}
+          <div className="lg:w-1/2 bg-white flex items-center justify-center p-6 lg:p-12">
+            <div className="w-full max-w-md">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Name and Rating in same row */}
+                <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                  <div className="flex-1">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                      placeholder="Enter your name"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Your Rating
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <StarRating 
+                        rating={formData.rating} 
+                        onRatingChange={handleRatingChange} 
+                        interactive={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your Feedback
+                  </label>
+                  <textarea
+                    id="feedback"
+                    name="feedback"
+                    value={formData.feedback}
+                    onChange={handleInputChange}
+                    rows="3"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors resize-none"
+                    placeholder="Share your experience with MAHI..."
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-300 flex items-center justify-center"
+                >
+                  {submitLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Feedback"
+                  )}
+                </button>
+
+                {submitMessage && (
+                  <div className={`p-3 rounded-lg text-center text-sm ${
+                    submitMessage.includes("Error") 
+                      ? "bg-red-100 text-red-700" 
+                      : "bg-green-100 text-green-700"
+                  }`}>
+                    {submitMessage}
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+
 
 const HeroSection = ({ isLoggedIn }) => {
   // Create a ref for the target section
@@ -37,8 +310,8 @@ const HeroSection = ({ isLoggedIn }) => {
   };
 
   const handleAnimationComplete = () => {
-  console.log('Animation completed!');
-};
+    console.log('Animation completed!');
+  };
 
   // Handle mood selection
   const handleMoodChange = (selectedMood) => {
@@ -60,13 +333,13 @@ const HeroSection = ({ isLoggedIn }) => {
         <div className="relative z-10 max-w-3xl px-8 md:px-16 text-left pt-16">
 
           <BlurText
-  text="Your Personal AI-Powered Mental Health Companion"
-  delay={150}
-  animateBy="words"
-  direction="top"
-  onAnimationComplete={handleAnimationComplete}
-  className="text-white text-5xl md:text-6xl font-bold mb-6 drop-shadow-lg"
-/>
+            text="Your Personal AI-Powered Mental Health Companion"
+            delay={150}
+            animateBy="words"
+            direction="top"
+            onAnimationComplete={handleAnimationComplete}
+            className="text-white text-5xl md:text-6xl font-bold mb-6 drop-shadow-lg"
+          />
           <p className="text-gray-200 text-lg md:text-xl mb-8 drop-shadow-md max-w-xl">
             Support your mental well-being with personalized, empathetic assistance.
             Track your mood, practice mindfulness, and get tailored advice anytime.
@@ -313,6 +586,9 @@ const HeroSection = ({ isLoggedIn }) => {
       </section>
 
       <FAQSection />
+      
+      {/* User Feedback Section */}
+      <FeedbackSection />
       
       {/* Floating Chat Button */}
       <FloatingChatButton />

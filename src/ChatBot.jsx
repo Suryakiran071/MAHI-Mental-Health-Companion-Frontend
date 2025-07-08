@@ -28,7 +28,7 @@ const ChatbotPage = () => {
       setLoading(true); // Set loading to true when waiting for response
 
       try {
-        const response = await fetch("http://localhost:8000/chat", {
+        const response = await fetch("http://localhost:8000/chatbot/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

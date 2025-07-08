@@ -84,7 +84,7 @@ function Meditation() {
     
     try {
       // Use your backend URL - adjust port if needed
-      const res = await fetch(`http://localhost:8000/meditation_dynamic/?issue=${encodeURIComponent(id)}&use_llm=true`);
+      const res = await fetch(`http://localhost:8000/meditation/dynamic/?issue=${encodeURIComponent(id)}&use_llm=true`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);

@@ -96,7 +96,7 @@ const MoodTracker = () => {
     setAnalysisError("");
     
     try {
-      const response = await fetch('http://localhost:8000/analyze_mood', {
+      const response = await fetch('http://localhost:8000/mood/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
