@@ -25,7 +25,7 @@ const ChatbotPage = () => {
       const userMessage = { text: input, sender: "User" };
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
-      setLoading(true); // Set loading to true when waiting for response
+      setLoading(true);
 
       try {
         const response = await fetch("http://localhost:8000/chatbot/chat", {
@@ -38,10 +38,15 @@ const ChatbotPage = () => {
 
         const data = await response.json();
 
+        // Create AI message object with support for links
         const aiMessage = {
           text: data.response,
           sender: "AI",
+          supportLinks: data.support_links || null,
+          responseType: data.response_type || null,
+          suicideDetected: data.suicide_detected || false,
         };
+        
         setMessages((prev) => [...prev, aiMessage]);
       } catch (error) {
         setMessages((prev) => [
@@ -49,7 +54,7 @@ const ChatbotPage = () => {
           { text: "Error: Could not reach the backend.", sender: "AI" },
         ]);
       } finally {
-        setLoading(false); // Set loading to false once the response is received
+        setLoading(false);
       }
     }
   };
@@ -58,6 +63,59 @@ const ChatbotPage = () => {
     if (e.key === "Enter" && input.trim() !== "") {
       handleSendMessage();
     }
+  };
+
+  function renderMessageWithLinks(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const lines = text.split('\n');
+
+  return lines.map((line, index) => {
+    const parts = line.split(urlRegex);
+    return (
+      <p key={index}>
+        {parts.map((part, i) =>
+          urlRegex.test(part) ? (
+            <a
+              key={i}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline hover:text-blue-700"
+            >
+              {part}
+            </a>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </p>
+    );
+  });
+}
+  
+  // Component to render message with support links
+  const MessageContent = ({ message }) => {
+    return (
+      <div>
+        <div className="text-sm">{renderMessageWithLinks(message.text)}</div>
+        {message.supportLinks && message.supportLinks.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {message.supportLinks.map((link, index) => (
+              <div key={index}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-blue-400 hover:text-blue-300 underline text-sm transition-colors duration-200"
+                >
+                  {link.text}
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -176,12 +234,12 @@ const ChatbotPage = () => {
                         ? "bg-gray-700 text-white" 
                         : "bg-gray-100 text-gray-800"
                       : "bg-green-500 text-white"
-                  }`}
+                  } ${message.suicideDetected ? 'border-2 border-red-400' : ''}`}
                   style={{
                     wordBreak: "break-word",
                   }}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  <MessageContent message={message} />
                 </div>
               </div>
             ))}

@@ -8,9 +8,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import login from "./assets/Login.png"
 
-const placeholderImage =
-  "https://via.placeholder.com/600x800?text=Your+Image+Here";
-
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,67 +40,38 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      }}
-    >
-      {/* Left side image */}
-      <div
+    <div className="flex h-screen font-sans">
+      {/* Left side image with text overlay */}
+      <div 
+        className="flex-1 bg-cover bg-center relative hidden md:block"
         style={{
-          flex: 1,
-          backgroundImage: `url(${login})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          display: "none",
-        }}
-        className="left-side-image"
-      />
-
-      {/* Right side login box container - center content */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#f9fafb",
-          padding: 20,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${login})`,
         }}
       >
+        {/* Text overlay */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white px-5 max-w-4/5">
+          <h1 className="text-5xl font-bold mb-4 drop-shadow-lg leading-tight">
+            Welcome Back
+          </h1>
+          <p className="text-xl font-normal mb-2 drop-shadow-md opacity-90">
+            Track your mood, understand your patterns,
+          </p>
+          <p className="text-xl font-normal drop-shadow-md opacity-90">
+            and improve your mental wellbeing
+          </p>
+        </div>
+      </div>
+
+      {/* Right side login box container */}
+      <div className="flex-1 flex justify-center items-center bg-gray-50 p-5">
         {/* The login form card */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 400,
-            backgroundColor: "white",
-            padding: 40,
-            borderRadius: 12,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          }}
-        >
-          <h2
-            style={{
-              marginBottom: 24,
-              fontWeight: "600",
-              fontSize: "1.8rem",
-              textAlign: "center",
-            }}
-          >
+        <div className="w-full max-w-md bg-white p-10 rounded-xl shadow-xl">
+          <h2 className="mb-6 font-semibold text-3xl text-center text-gray-800">
             {isRegistering ? "Register" : "Login"}
           </h2>
 
           {error && (
-            <p
-              style={{
-                color: "red",
-                marginBottom: 16,
-                fontWeight: "600",
-                textAlign: "center",
-              }}
-            >
+            <p className="text-red-600 mb-4 font-semibold text-center bg-red-50 p-3 rounded-md">
               {error}
             </p>
           )}
@@ -113,81 +81,34 @@ const LoginPage = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 12,
-              marginBottom: 16,
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              fontSize: 16,
-            }}
+            className="w-full p-3 mb-4 rounded-md border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 12,
-              marginBottom: 24,
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              fontSize: 16,
-            }}
+            className="w-full p-3 mb-6 rounded-md border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             onClick={handleEmailPasswordLogin}
-            style={{
-              width: "100%",
-              padding: 14,
-              backgroundColor: "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius: 6,
-              fontWeight: "600",
-              fontSize: 16,
-              cursor: "pointer",
-              marginBottom: 24,
-            }}
+            className="w-full p-4 bg-blue-600 text-white border-none rounded-md font-semibold text-base cursor-pointer mb-6 hover:bg-blue-700 transition-colors duration-200"
           >
             {isRegistering ? "Register" : "Login"}
           </button>
 
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: 16,
-              fontWeight: "600",
-              color: "#666",
-            }}
-          >
+          <div className="text-center mb-4 font-semibold text-gray-600">
             OR
           </div>
 
           <button
             onClick={handleGoogleLogin}
-            style={{
-              width: "100%",
-              padding: 14,
-              border: "1.5px solid #4285F4",
-              borderRadius: 6,
-              backgroundColor: "white",
-              color: "#4285F4",
-              fontWeight: "600",
-              fontSize: 16,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
+            className="w-full p-4 border-2 border-blue-500 rounded-md bg-white text-blue-500 font-semibold text-base cursor-pointer flex items-center justify-center gap-3 hover:bg-blue-50 transition-colors duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 533.5 544.3"
-              width="20"
-              height="20"
+              className="w-5 h-5"
             >
               <path
                 fill="#4285f4"
@@ -206,37 +127,20 @@ const LoginPage = () => {
                 d="M272 107.7c39.4-.6 77.4 13.9 106.1 39.7l79.6-79.6C404.9 24 344 0 272 0 164.6 0 74.3 61 30.2 148.4l89.8 70.5c21.4-64.1 81.4-111.2 152-111.2z"
               />
             </svg>
-
             Sign in with Google
           </button>
 
-          <p
-            style={{
-              marginTop: 24,
-              textAlign: "center",
-              fontWeight: "600",
-              color: "#555",
-            }}
-          >
+          <p className="mt-6 text-center font-semibold text-gray-700">
             {isRegistering ? "Already have an account?" : "Don't have an account?"}{" "}
             <span
               onClick={() => setIsRegistering(!isRegistering)}
-              style={{ color: "#2563eb", cursor: "pointer" }}
+              className="text-blue-600 cursor-pointer hover:text-blue-800 hover:underline"
             >
               {isRegistering ? "Login here" : "Register here"}
             </span>
           </p>
         </div>
       </div>
-
-      {/* Responsive: Show image only on larger screens */}
-      <style>{`
-        @media (min-width: 768px) {
-          .left-side-image {
-            display: block !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

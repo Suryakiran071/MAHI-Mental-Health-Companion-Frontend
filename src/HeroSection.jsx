@@ -10,9 +10,11 @@ import insights from "./assets/Resources.jpg";
 import FAQSection from "./FAQSection"; // or define in same file above HeroSection
 import Magnet from './Components/Magnet'
 import BlurText from "./Components/BlurText";
+import Footer from "./Components/Footer";
 // Import Firebase functions
 import { db } from "./firebase"; // Adjust path as needed
 import { collection, addDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
+import StarRating from './Components/StarRating'
 
 const FloatingChatButton = () => {
   return (
@@ -21,37 +23,6 @@ const FloatingChatButton = () => {
         <span className="text-1xl">Chat Now💬</span> {/* Chat Icon */}
       </button>
     </Link>
-  );
-};
-
-const StarRating = ({ rating, onRatingChange, interactive = false }) => {
-  const [hover, setHover] = useState(0);
-
-  return (
-    <div className="flex space-x-1">
-      {[...Array(5)].map((_, index) => {
-        const ratingValue = index + 1;
-        return (
-          <button
-            key={index}
-            type={interactive ? "button" : undefined}
-            className={`text-xl transition-colors duration-200 ${
-              interactive ? "cursor-pointer hover:scale-110" : "cursor-default"
-            } ${
-              ratingValue <= (hover || rating)
-                ? "text-yellow-400"
-                : "text-gray-300"
-            }`}
-            onClick={interactive ? () => onRatingChange(ratingValue) : undefined}
-            onMouseEnter={interactive ? () => setHover(ratingValue) : undefined}
-            onMouseLeave={interactive ? () => setHover(0) : undefined}
-            disabled={!interactive}
-          >
-            ★
-          </button>
-        );
-      })}
-    </div>
   );
 };
 
@@ -558,7 +529,7 @@ const HeroSection = ({ isLoggedIn }) => {
               <p className="text-gray-700 text-lg md:text-xl max-w-md mb-8">
                 MAHI curates articles, videos, and exercises tailored to the user's mood history and emotional needs, ensuring timely and relevant mental health support.
               </p>
-              <Link to="/resources">
+              <Link to="/resource">
                 <button className="bg-teal-600 hover:bg-teal-700 text-white py-3 px-8 rounded-full text-lg transition duration-300 shadow-lg">
                   Explore Resources
                 </button>
@@ -592,6 +563,7 @@ const HeroSection = ({ isLoggedIn }) => {
       
       {/* Floating Chat Button */}
       <FloatingChatButton />
+      <Footer/>
     </div>
   );
 };

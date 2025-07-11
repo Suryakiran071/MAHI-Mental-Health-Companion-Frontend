@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from './firebase'; // Adjust path as needed
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const MentalHealthResources = () => {
@@ -23,6 +23,7 @@ const MentalHealthResources = () => {
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [journalSubmitting, setJournalSubmitting] = useState(false);
 
   // Monitor authentication state
   useEffect(() => {
@@ -145,10 +146,60 @@ const MentalHealthResources = () => {
     });
   };
 
-  // Handle journal submission
-  const handleJournalSubmit = () => {
-    console.log("User's journal responses:", responses);
-    // Process or store these responses
+  // Handle journal submission - Save to Firestore
+  const handleJournalSubmit = async () => {
+    if (!userId) {
+      alert('Please log in to submit your journal entries.');
+      return;
+    }
+
+    // Check if there are any responses to submit
+    const hasResponses = Object.values(responses).some(response => response.trim() !== '');
+    if (!hasResponses) {
+      alert('Please write at least one journal entry before submitting.');
+      return;
+    }
+
+    setJournalSubmitting(true);
+    
+    try {
+      const journalCollection = collection(db, 'Guided_Journals');
+      
+      // Save each prompt and its response as a separate document
+      const submissions = Object.entries(responses)
+        .filter(([_, response]) => response.trim() !== '')
+        .map(([promptKey, response], index) => {
+          const promptIndex = parseInt(promptKey.replace('prompt', '')) - 1;
+          const prompt = resources.journal_prompts[promptIndex] || `Prompt ${promptIndex + 1}`;
+          
+          return {
+            userId: userId,
+            prompt: prompt,
+            answer: response.trim(),
+            mood: currentMood,
+            timestamp: serverTimestamp()
+          };
+        });
+
+      // Submit all journal entries
+      await Promise.all(
+        submissions.map(entry => addDoc(journalCollection, entry))
+      );
+
+      // Clear the responses after successful submission
+      setResponses({
+        prompt1: "",
+        prompt2: "",
+      });
+
+      alert('Journal entries submitted successfully!');
+      
+    } catch (error) {
+      console.error('Error submitting journal entries:', error);
+      alert('Failed to submit journal entries. Please try again.');
+    } finally {
+      setJournalSubmitting(false);
+    }
   };
 
   // Function to get mood color
@@ -219,19 +270,23 @@ const MentalHealthResources = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* YouTube Video Card */}
         <div className="card p-6 border rounded-lg shadow-lg hover:shadow-xl">
-          <h3 className="text-3xl text-gray-600 font-semibold mb-4 text-center">YouTube Videos</h3>
+          <h3 className="font-jua text-3xl text-gray-600 font-semibold mb-4 text-center">YouTube Videos</h3>
           <div className="space-y-4">
             {resources.videos.length > 0 ? (
               resources.videos.map((video, index) => (
-                <a 
-                  key={index}
-                  href={video.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="block text-blue-500 hover:underline"
-                >
-                  {video.title}
-                </a>
+                <div key={index} className="border-b border-gray-200 pb-3 last:border-b-0">
+                  <h4 className="text-lg font-bold text-gray-800 mb-2">
+                    {video.title || `Video ${index + 1}`}
+                  </h4>
+                  <a 
+                    href={video.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    Watch on YouTube
+                  </a>
+                </div>
               ))
             ) : (
               <p className="text-gray-500">No videos available for your current mood.</p>
@@ -241,7 +296,7 @@ const MentalHealthResources = () => {
 
         {/* Guided Journals Card */}
         <div className="card p-6 border rounded-lg shadow-lg hover:shadow-xl">
-          <h3 className="text-3xl text-gray-600 font-semibold mb-4 text-center">Guided Journals</h3>
+          <h3 className="font-jua text-3xl text-gray-600 font-semibold mb-4 text-center">Guided Journals</h3>
           <div className="space-y-6">
             {resources.journal_prompts.length > 0 ? (
               resources.journal_prompts.map((prompt, index) => (
@@ -264,9 +319,14 @@ const MentalHealthResources = () => {
 
             <button
               onClick={handleJournalSubmit}
-              className="w-full bg-yellow-500 text-white py-2 px-4 rounded-full hover:bg-yellow-600"
+              disabled={journalSubmitting}
+              className={`w-full py-2 px-4 rounded-full text-white font-semibold ${
+                journalSubmitting 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-yellow-500 hover:bg-yellow-600'
+              } transition-colors`}
             >
-              Submit Journal
+              {journalSubmitting ? 'Submitting...' : 'Submit Journal'}
             </button>
           </div>
         </div>
@@ -276,19 +336,27 @@ const MentalHealthResources = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Apps Card */}
         <div className="card p-6 border rounded-lg shadow-lg hover:shadow-xl">
-          <h3 className="text-3xl text-gray-600 font-semibold mb-4 text-center">Mobile Apps</h3>
+          <h3 className="font-jua text-3xl text-gray-600 font-semibold mb-4 text-center">Mobile Apps</h3>
           <div className="space-y-4">
             {resources.apps.length > 0 ? (
               resources.apps.map((app, index) => (
-                <a 
-                  key={index}
-                  href={app.url || '#'} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="block text-blue-500 hover:underline"
-                >
-                  {app}
-                </a>
+                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                    {typeof app === 'object' ? app.name : app}
+                  </h4>
+                  {typeof app === 'object' && app.url ? (
+                    <a 
+                      href={app.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Download App
+                    </a>
+                  ) : (
+                    <p className="text-gray-600 text-sm">Search for this app in your app store</p>
+                  )}
+                </div>
               ))
             ) : (
               <p className="text-gray-500">No apps available for your current mood.</p>
@@ -298,7 +366,7 @@ const MentalHealthResources = () => {
 
         {/* Motivational Quotes Card */}
         <div className="card p-6 border rounded-lg shadow-lg hover:shadow-xl">
-          <h3 className="text-3xl text-gray-600 font-semibold mb-4 text-center">Quotes</h3>
+          <h3 className="font-jua text-3xl text-gray-600 font-semibold mb-4 text-center">Quotes</h3>
           {resources.quotes.length > 0 ? (
             <div>
               <blockquote className="text-gray-800 italic text-5xl mb-4">
@@ -307,7 +375,7 @@ const MentalHealthResources = () => {
               {resources.quotes.length > 1 && (
                 <div className="mt-4 space-y-2">
                   {resources.quotes.slice(1).map((quote, index) => (
-                    <p key={index} className="text-gray-700 text-lg italic">
+                    <p key={index} className="font-jua text-gray-700 text-lg italic">
                       "{quote}"
                     </p>
                   ))}
@@ -321,7 +389,7 @@ const MentalHealthResources = () => {
 
         {/* Books Card */}
         <div className="card p-6 border rounded-lg shadow-lg hover:shadow-xl">
-          <h3 className="text-3xl text-gray-600 font-semibold mb-4 text-center">Books</h3>
+          <h3 className="font-jua text-3xl text-gray-600 font-semibold mb-4 text-center">Books</h3>
           <div className="space-y-4">
             {resources.books.length > 0 ? (
               resources.books.map((book, index) => (

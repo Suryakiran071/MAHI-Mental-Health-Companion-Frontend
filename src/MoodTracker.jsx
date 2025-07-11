@@ -26,6 +26,7 @@ const MoodTracker = () => {
   const [moodAnalysis, setMoodAnalysis] = useState("");
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState("");
+  const [hasAnalysisBeenLoaded, setHasAnalysisBeenLoaded] = useState(false);
 
   // Handle adding a mood log
   const addMoodLog = async () => {
@@ -50,7 +51,7 @@ const MoodTracker = () => {
       setTagList([]);
 
       fetchUserMoodLogs();
-      fetchMoodAnalysis(); // Refresh analysis after adding new mood log
+      // Remove automatic analysis refresh after adding mood log
 
       setTimeout(() => {
         setLogStatus("");
@@ -112,6 +113,7 @@ const MoodTracker = () => {
 
       const data = await response.json();
       setMoodAnalysis(data.mood_analysis);
+      setHasAnalysisBeenLoaded(true);
     } catch (error) {
       console.error('Error fetching mood analysis:', error);
       setAnalysisError("Unable to fetch mood analysis. Please try again later.");
@@ -151,10 +153,10 @@ const MoodTracker = () => {
     navigate('/resource');
   };
 
-  // Fetch mood logs and analysis when the component mounts
+  // Fetch mood logs when the component mounts (but not analysis)
   useEffect(() => {
     fetchUserMoodLogs();
-    fetchMoodAnalysis();
+    // Remove automatic analysis fetch
   }, []);
 
   // Aggregate mood counts for the pie chart
@@ -251,6 +253,13 @@ const MoodTracker = () => {
       }
       return null;
     });
+  };
+
+  // Get button text based on current state
+  const getAnalysisButtonText = () => {
+    if (analysisLoading) return "Loading...";
+    if (hasAnalysisBeenLoaded) return "Refresh Analysis";
+    return "View Analysis";
   };
 
   return (
@@ -370,11 +379,11 @@ const MoodTracker = () => {
           <div className="flex justify-center items-center mb-6 space-x-4">
             <h2 className="text-2xl font-semibold">Your <em className="text-green-600 italic">Analysis</em></h2>
             <button 
-              className="bg-green-600 text-white py-2 px-4 rounded-full hover:bg-green-700 transition-colors"
+              className="bg-green-600 text-white py-2 px-4 rounded-full hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={fetchMoodAnalysis}
               disabled={analysisLoading}
             >
-              {analysisLoading ? "Refreshing..." : "Refresh Analysis"}
+              {getAnalysisButtonText()}
             </button>
           </div>
           
@@ -399,8 +408,8 @@ const MoodTracker = () => {
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  <p>No mood data available for analysis yet.</p>
-                  <p className="text-sm mt-2">Start logging your moods to see your personalized analysis!</p>
+                  <p>Click "View Analysis" to see your personalized mood analysis.</p>
+                  <p className="text-sm mt-2">Make sure you have logged some moods first!</p>
                 </div>
               )}
             </div>
