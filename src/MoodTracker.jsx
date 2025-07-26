@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
-import very_happy from "./assets/Very_happy.png";
+import very_happy from "./assets/Very_Happy.png";
 import happy from "./assets/Happy.png";
 import neutral from "./assets/Neutral.png";
 import sad from "./assets/Sad.png";
-import very_sad from "./assets/very_sad.png";
+import very_sad from "./assets/Very_Sad.png";
 import { db, auth } from './firebase';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
