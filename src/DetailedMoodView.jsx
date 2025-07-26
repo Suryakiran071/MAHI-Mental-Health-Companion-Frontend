@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from './firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import very_happy from "./assets/very_happy.png";
+import very_happy from "./assets/Very_happy.png";
 import happy from "./assets/Happy.png";
 import neutral from "./assets/Neutral.png";
 import sad from "./assets/Sad.png";
-import very_sad from "./assets/very_sad.png";
+import very_sad from "./assets/Very_sad.png";
 import Particles from './Components/Particles';
 
 const DetailedMoodView = () => {
