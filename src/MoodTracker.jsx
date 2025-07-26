@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
-import very_happy from "./assets/very_happy.png";
+import very_happy from "./assets/Very_happy.png";
 import happy from "./assets/Happy.png";
 import neutral from "./assets/Neutral.png";
 import sad from "./assets/Sad.png";

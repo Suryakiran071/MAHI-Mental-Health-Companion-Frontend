@@ -180,7 +180,7 @@ function Meditation() {
       } else if (index === 0 && trimmedSection && !trimmedSection.match(/^Step\s+\d+:/i)) {
         // Handle introduction text before Step 1
         steps.push({
-          number: 0,
+          number: 1,
           title: 'Introduction',
           content: trimmedSection
         });
